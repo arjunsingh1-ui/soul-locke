@@ -7,13 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useTrackerStore } from '@/lib/store/tracker-store';
+import { useTracker } from '@/lib/context/tracker-context';
 import { PokemonSearch } from './pokemon-search';
 import { Plus } from 'lucide-react';
 
 export function EncountersDashboard() {
-  const { encounters, pokemon, addEncounter, addPokemonToEncounter, updateEncounterStatus } =
-    useTrackerStore();
+  const { encounters, addEncounter, addPokemonToEncounter, updateEncounterStatus } = useTracker();
   const [newRoute, setNewRoute] = useState('');
   const [newRouteName, setNewRouteName] = useState('');
   const [openNewEncounter, setOpenNewEncounter] = useState(false);
@@ -75,8 +74,8 @@ export function EncountersDashboard() {
           </Card>
         ) : (
           encounters.map((encounter) => {
-            const player1Pokemon = pokemon.find((p) => p.id === encounter.player1PokemonId);
-            const player2Pokemon = pokemon.find((p) => p.id === encounter.player2PokemonId);
+            const player1Pokemon = encounter.player1Pokemon;
+            const player2Pokemon = encounter.player2Pokemon;
 
             return (
               <Card key={encounter.id} className="p-4">
@@ -85,7 +84,7 @@ export function EncountersDashboard() {
                     <h3 className="font-bold text-lg">
                       Route {encounter.routeNumber} - {encounter.routeName}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{new Date(encounter.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">Encounter active</p>
                   </div>
                   <div className="flex gap-2">
                     <Badge className={statusColors[encounter.status]}>
@@ -117,7 +116,6 @@ export function EncountersDashboard() {
                       <PokemonSearch
                         onSelect={(name, species, primaryType) =>
                           addPokemonToEncounter(encounter.id, 1, {
-                            playerNumber: 1,
                             name,
                             species,
                             primaryType,
@@ -139,7 +137,6 @@ export function EncountersDashboard() {
                       <PokemonSearch
                         onSelect={(name, species, primaryType) =>
                           addPokemonToEncounter(encounter.id, 2, {
-                            playerNumber: 2,
                             name,
                             species,
                             primaryType,

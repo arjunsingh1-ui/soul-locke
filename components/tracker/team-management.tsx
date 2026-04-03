@@ -3,19 +3,19 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useTrackerStore } from '@/lib/store/tracker-store';
+import { useTracker } from '@/lib/context/tracker-context';
 import { AlertTriangle } from 'lucide-react';
 
 export function TeamManagement() {
-  const { encounters, pokemon } = useTrackerStore();
+  const { encounters } = useTracker();
 
   // Get active team (only 'active' status encounters)
   const activeEncounters = encounters.filter((e) => e.status === 'active');
 
   // Extract all 12 active Pokemon with their types
   const activePokemon = activeEncounters.flatMap((enc) => {
-    const p1 = pokemon.find((p) => p.id === enc.player1PokemonId);
-    const p2 = pokemon.find((p) => p.id === enc.player2PokemonId);
+    const p1 = enc.player1Pokemon;
+    const p2 = enc.player2Pokemon;
     return [p1, p2].filter(Boolean);
   });
 
@@ -50,8 +50,8 @@ export function TeamManagement() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {activeEncounters.map((enc) => {
-            const p1 = pokemon.find((p) => p.id === enc.player1PokemonId);
-            const p2 = pokemon.find((p) => p.id === enc.player2PokemonId);
+            const p1 = enc.player1Pokemon;
+            const p2 = enc.player2Pokemon;
 
             return (
               <Card key={enc.id} className="p-4">

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useTrackerStore } from '@/lib/store/tracker-store';
+import { useTracker } from '@/lib/context/tracker-context';
 import { PokemonSearchForBoss } from './pokemon-search-for-boss';
 import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 
@@ -25,8 +25,8 @@ const PLATINUM_BOSSES = [
 ];
 
 export function BossPlannerTab() {
-  const { bossBattles, pokemon, encounters, addBossBattle, toggleBossDefeated, addBossDraft, removeBossDraft, bossDraft } =
-    useTrackerStore();
+  const { bossBattles, encounters, addBossBattle, toggleBossDefeated, addBossDraft, removeBossDraft, bossDraft } =
+    useTracker();
   const [openNewBoss, setOpenNewBoss] = useState(false);
   const [newBossName, setNewBossName] = useState('');
   const [openDraftDialog, setOpenDraftDialog] = useState(false);
@@ -51,8 +51,8 @@ export function BossPlannerTab() {
   // Get active team for draft
   const activeEncounters = encounters.filter((e) => e.status === 'active');
   const activePokemon = activeEncounters.flatMap((enc) => {
-    const p1 = pokemon.find((p) => p.id === enc.player1PokemonId);
-    const p2 = pokemon.find((p) => p.id === enc.player2PokemonId);
+    const p1 = enc.player1Pokemon;
+    const p2 = enc.player2Pokemon;
     return [{ pokemon: p1, encId: enc.id, player: 1 }, { pokemon: p2, encId: enc.id, player: 2 }]
       .filter((item) => item.pokemon)
       .map((item) => ({ ...item.pokemon, encId: item.encId, player: item.player }));
@@ -61,15 +61,15 @@ export function BossPlannerTab() {
   // Check for type conflicts in draft
   const checkDraftConflicts = (p1Id: string | null, p2Id: string | null) => {
     const draftPokemon = bossDraft
-      .filter((d) => d.player1PokemonId || d.player2PokemonId)
+      .filter((d) => d.player1Pokemon || d.player2Pokemon)
       .flatMap((d) => {
-        const p1 = pokemon.find((p) => p.id === d.player1PokemonId);
-        const p2 = pokemon.find((p) => p.id === d.player2PokemonId);
+        const p1 = d.player1Pokemon;
+        const p2 = d.player2Pokemon;
         return [p1, p2].filter(Boolean);
       });
 
-    const p1 = p1Id ? pokemon.find((p) => p.id === p1Id) : null;
-    const p2 = p2Id ? pokemon.find((p) => p.id === p2Id) : null;
+    const p1 = p1Id ? activePokemon.find((p) => p.id === p1Id) : null;
+    const p2 = p2Id ? activePokemon.find((p) => p.id === p2Id) : null;
 
     const allTypes = [...draftPokemon, p1, p2]
       .filter(Boolean)
@@ -196,9 +196,9 @@ export function BossPlannerTab() {
             </Card>
           ) : (
             bossDraft.map((draft) => {
-              const p1 = pokemon.find((p) => p.id === draft.player1PokemonId);
-              const p2 = pokemon.find((p) => p.id === draft.player2PokemonId);
-              const conflicts = checkDraftConflicts(draft.player1PokemonId, draft.player2PokemonId);
+              const p1 = draft.player1Pokemon;
+              const p2 = draft.player2Pokemon;
+              const conflicts = checkDraftConflicts(draft.player1Pokemon?.id || null, draft.player2Pokemon?.id || null);
 
               return (
                 <Card key={draft.id} className="p-4">
@@ -253,14 +253,12 @@ export function BossPlannerTab() {
 
 interface DraftTeamSelectorProps {
   activePokemon: any[];
-  pokemon: any[];
   onConfirm: (p1Id: string | null, p2Id: string | null) => void;
   checkConflicts: (p1Id: string | null, p2Id: string | null) => string[];
 }
 
 function DraftTeamSelector({
   activePokemon,
-  pokemon,
   onConfirm,
   checkConflicts,
 }: DraftTeamSelectorProps) {

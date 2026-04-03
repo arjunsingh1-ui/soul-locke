@@ -5,14 +5,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EncountersDashboard } from '@/components/tracker/encounters-dashboard';
 import { TeamManagement } from '@/components/tracker/team-management';
 import { BossPlannerTab } from '@/components/tracker/boss-planner-tab';
-import { useTrackerStore } from '@/lib/store/tracker-store';
+import { useTracker, TrackerProvider } from '@/lib/context/tracker-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function Home() {
-  const { runCode, initializeRun, loading } = useTrackerStore();
+  return (
+    <TrackerProvider>
+      <TrackerContent />
+    </TrackerProvider>
+  );
+}
+
+function TrackerContent() {
+  const { runCode, initializeRun, loading } = useTracker();
   const [showJoinDialog, setShowJoinDialog] = useState(!runCode);
   const [inputCode, setInputCode] = useState('');
   const [initError, setInitError] = useState<string | null>(null);
